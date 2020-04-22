@@ -58,6 +58,7 @@ _slackrepo() {
             # but I don't know if its feasible to scan the whole sbo repository for suggestions
             # so I'll limit to categories
             COMPREPLY+=( $(cd ${SLACKBUILDS}; compgen -d -- "$cur") )
+            COMPREPLY+=( $(cd ${SLACKBUILDS}; compgen -W "$(find . -type f -name '*.SlackBuild' -exec basename '{}' .SlackBuild \; )" -- "$cur" ) )
             return
             ;;
         rebuild )
