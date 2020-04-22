@@ -4,14 +4,16 @@ Bash completion file for [Slackrepo](http://idlemoor.github.io/slackrepo/index.h
 
 ## Getting Started
 
-Just copy this file to /etc/bash_completion.d and then run
+Just copy this file (as root) to /etc/bash_completion.d and then source it (as normal user) like this:
 ```
-source /etc/bash_completion.d/slackrepo
+#> cp slackrepo.completion /etc/bash_completion.d/
+
+$> . /etc/bash_completion.d/slackrepo
 ```
 
 ### Prerequisites
 
-You need to have bash-completion and of course slackrepo
+You need to have [bash-completion](https://github.com/scop/bash-completion) and of course [slackrepo](http://idlemoor.github.io/slackrepo/index.html)
 
 ### Installing
 
