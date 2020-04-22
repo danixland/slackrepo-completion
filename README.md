@@ -6,7 +6,7 @@ Bash completion file for [Slackrepo](http://idlemoor.github.io/slackrepo/index.h
 
 Just copy this file (as root) to /etc/bash_completion.d and then source it like this:
 ```
-#> cp slackrepo.completion /etc/bash_completion.d/
+#> cp slackrepo.completion /etc/bash_completion.d/slackrepo
 
 #> . /etc/bash_completion.d/slackrepo
 ```
