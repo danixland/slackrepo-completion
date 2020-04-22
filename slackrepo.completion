@@ -1,0 +1,98 @@
+# bash completion for slackrepo(8)                          -*- shell-script -*-
+
+_slackrepo() {
+
+    local confdir="/etc/slackrepo"
+    local userconffile="${HOME}/.slackreporc"
+
+    local cur prev words cword
+    _init_completion -n = || return
+
+    local split=false
+    if [[ "$cur" == -?*=* ]]; then
+        prev="${cur%%?(\\)=*}"
+        cur="${cur#*=}"
+        split=true
+    fi
+
+    case "$prev" in
+        --repo)
+            COMPREPLY+=( $(cd ${confdir}; compgen -d -- "$cur") )
+            return
+            ;;
+        --color)
+            COMPREPLY+=( $(compgen -W 'always auto no' -- "$cur") )
+            return
+            ;;
+        --nice)
+            # Requires a value but we can't suggest it
+            return
+            ;;
+    esac
+
+    $split && return
+
+    if [[ "$cur" == -* ]]; then
+        compopt -o nospace
+        COMPREPLY=( $(compgen -W '--repo= --dry-run --install --chroot --lint -v --verbose
+        -vv --very-verbose --keep-tmp --color= --nice=' -- "$cur") )
+        return
+    fi
+
+    local i action
+    for (( i=1; i<${#words[@]}; i++ )); do
+        if [[ "${words[i]}" != -* ]]; then
+            action="${words[i]}"
+            break
+        fi
+    done
+
+    [[ -r "$userconffile" ]] || return
+    . "$userconffile"
+
+    local SLACKBUILDS="/var/lib/slackrepo/${REPO}/slackbuilds"
+
+    case "$action" in
+        build | install )
+            # we should provide a list of packages or whole directories that might be built
+            # but I don't know if its feasible to scan the whole sbo repository for suggestions
+            # so I'll limit to categories
+            COMPREPLY+=( $(cd ${SLACKBUILDS}; compgen -d -- "$cur") )
+            return
+            ;;
+        rebuild )
+            # here we provide a list of packages or whole directories in our local repository
+            COMPREPLY+=( $(cd ${PKGREPO}; compgen -d -- "$cur") )
+            COMPREPLY+=( $( grep 'txz$' ${PKGREPO}/FILELIST.TXT |rev |cut -f1 -d\ |cut -f1 -d/ |cut -f4- -d- |rev | command grep "^$cur") )
+            return
+            ;;
+        update )
+            # we should provide a list of packages or whole directories that might be updated
+            COMPREPLY+=( $(cd ${PKGREPO}; compgen -d -- "$cur") )
+            COMPREPLY+=( $( grep 'txz$' ${PKGREPO}/FILELIST.TXT |rev |cut -f1 -d\ |cut -f1 -d/ |cut -f4- -d- |rev | command grep "^$cur") )
+            return
+            ;;
+        remove )
+            # here we only provide packages that are already in our repository
+            COMPREPLY+=( $( grep 'txz$' ${PKGREPO}/FILELIST.TXT |rev |cut -f1 -d\ |cut -f1 -d/ |cut -f4- -d- |rev | command grep "^$cur") )
+            return
+            ;;
+        revert )
+            # we should provide a list of packages that might be reverted from backup
+            # in order to revert we check for the existance of a backup first
+            if [[ -e $PKGBACKUP ]]; then
+                COMPREPLY=( $(cd "$PKGBACKUP"; compgen -W "$(find . -type f -name '*.txz' -exec basename '{}' \; |rev |cut -f4- -d- |rev)" -- "$cur") )
+            fi
+            return
+            ;;
+        * )
+            COMPREPLY+=( $(compgen -W 'build rebuild update install remove revert' -- "$cur") )
+            return
+            ;;
+    esac
+
+}
+
+complete -F _slackrepo slackrepo
+
+# ex: filetype=sh
